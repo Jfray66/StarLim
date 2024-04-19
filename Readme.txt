@@ -7,7 +7,7 @@ Run StarLim from FiJi toolbar >> StarLim. Click on numbers (1 to 6) to run StarL
 
 Description:
 
-StarLim is a toolset designed to run under ImageJ (FiJi).
+StarLim is a toolset designed to run under ImageJ (FiJi), for multi-channels 2D images.
 This set of macro is composed of 6 independant action tools (that has to be run following the sequential order OR later if wished).
 The purpose of this toolbox is to process and run image segmentation to count foci into nucleus from "x" images that has "x" channels into "x" folder.
 Each action tools are recursive.
