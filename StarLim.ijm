@@ -12,7 +12,7 @@
  * mail: jean-yves.frayssinhes@cnrs.fr
  */
 
-macro "Convert and/or split Action Tool - C059T3e161" {
+macro "Convert and/or split Action Tool - C059T3e161"  {
 	Title = "Convert and/or split";
 	Message = "The macro to convert/split channels is about to begin.\nPress OK to continue."
 		waitForUser(Title, Message);
@@ -76,7 +76,7 @@ setBatchMode(false);																			// Disable batch mode
 		showMessage(Title2, Message2);
 }
 
-macro "Normalisation" {
+macro "Normalisation Action Tool - C059T3e162"   {
 	Title = "Normalisation";
 	Message = "Normalisation of channel is about to begin.\nPress OK to continue."
 		waitForUser(Title, Message);
@@ -106,7 +106,7 @@ macro "Normalisation" {
 		print("");
 		print("Overall mean intensity: "+average);
 	div_values = newArray("nResults");
-	for (x = 0; x < nResults; x++) {
+	for ( x = 0; x < nResults; x++) {
 	div_values[x] = getResult("Mean", x) / average;
 		print("Normalisation factor " + list[x] + ": " + div_values[x]);
 }
@@ -136,9 +136,69 @@ macro "Normalisation" {
 		showMessage(Title2, Message2);
 }
 
-macro "Background correction (Nuclei/cytoplasm) Action Tool - C059T3e163" {
-	Title = "Background correction";
-	Message = "Background subtraction of nuclei/cytoplasm channel is about to begin.\nPress OK to continue."
+macro "Normalisation Action Tool - C059T3e162"	{
+	Title = "Normalisation";
+	Message = "Normalisation of channel is about to begin.\nPress OK to continue."
+		waitForUser(Title, Message);
+	do {
+
+		run("Set Measurements...", "mean standard modal min redirect=None decimal=3");
+
+	channel_name = getString("Your channel color is: ", "Blue");
+	input = getDirectory("Select the not-normalised "+channel_name+" channel folder.");
+	list = getFileList(input);
+	output_dir = input + File.separator + "1 - Not-processed "+channel_name+" channels" + File.separator ;
+		File.makeDirectory(output_dir);
+
+	for (i = 0; i < lengthOf(list); i++) {
+	current_imagePath = input+list[i];
+		open(current_imagePath);
+		run("Measure");
+	currentImage_name = getTitle();
+		saveAs("Tiff", output_dir + 1 + i + " "+channel_name+" " + currentImage_name);
+}
+	sum = 0;
+	for (i = 0; i < nResults; i++) {
+  	sum = sum + getResult("Mean", i);
+}
+	average = sum / nResults;
+		print("Settings:\nThe first value calculated is the mean intensity of all images.\nAll images are going to be normalised to this value.");
+		print("");
+		print("Overall mean intensity: "+average);
+	div_values = newArray("nResults");
+	for ( x = 0; x < nResults; x++) {
+	div_values[x] = getResult("Mean", x) / average;
+		print("Normalisation factor " + list[x] + ": " + div_values[x]);
+}
+	for (j = 0; j < nImages; j++) {
+		selectImage(j+1);
+		selectWindow("Log");
+		run("Divide...", "value=" + div_values[j]);
+		run("Measure");
+		run("Fire");
+		run("Save");
+}
+		selectWindow("Results");
+		run("Close");
+		selectWindow("Log");
+		saveAs("Text", output_dir+"Log - "+channel_name);
+		print("\\Clear");
+		run("Close");
+		run("Close All");
+	dialog = Dialog.create("Question");
+	Dialog.addMessage("Do you wish to normalise others channel?");
+		Dialog.addChoice("Choose:", newArray("Yes", "No, I am done"));
+		Dialog.show();
+	choice = Dialog.getChoice();
+	} while (choice == "Yes");
+	Title2 = "Norm has ended";
+	Message2 = "Press OK to Continue";
+		showMessage(Title2, Message2);
+}
+
+macro "Background correction (Nuclei) Action Tool - C059T3e163"	{
+	Title = "Background correction (Nuclei)";
+	Message = "Background subtraction of nuclei channel is about to begin.\nPress OK to continue."
 		waitForUser(Title, Message);
 	do {
 
@@ -162,7 +222,7 @@ macro "Background correction (Nuclei/cytoplasm) Action Tool - C059T3e163" {
 	for (j = 0; j < nImages; j++) {
 		selectImage(j+1);
 		setTool("rectangle");
-		waitForUser("Selection", "Select what is not a nucleus/cytoplasm, then press OK");
+		waitForUser("Selection", "Select what is not a nucleus, then press OK");
 		run("Measure");
 }
 	sum = 0;
@@ -172,7 +232,7 @@ macro "Background correction (Nuclei/cytoplasm) Action Tool - C059T3e163" {
 	average = sum / nResults;
 		print("Settings:");
 		print("This value calculated is the background mean intensity: "+average);
-		print("That is the value to substract background to your images.");
+		print("That is the value to subtract background to your images.");
 		selectWindow("Log");
 		run("Close All");
 
@@ -212,7 +272,7 @@ macro "Background correction (Nuclei/cytoplasm) Action Tool - C059T3e163" {
 		print("\\Clear");
 		run("Close");
 	dialog = Dialog.create("Question");
-	Dialog.addMessage("Do you wish to process others nuclei/cytoplasm channel?");
+	Dialog.addMessage("Do you wish to process others nuclei channel?");
 		Dialog.addChoice("Choose:", newArray("Yes", "No, I am done"));
 		Dialog.show();
 	choice = Dialog.getChoice();
@@ -224,7 +284,7 @@ macro "Background correction (Nuclei/cytoplasm) Action Tool - C059T3e163" {
 
 macro "Background correction (Particles) Action Tool - C059T3e164" {
 	Title = "Background correction (Particles)";
-	Message = "Background substraction of particles-containing channel is about to begin.\nPress OK to continue."
+	Message = "Background subtraction of particles-containing channel is about to begin.\nPress OK to continue."
 		waitForUser(Title, Message);
 	do {
 
@@ -258,7 +318,7 @@ else {
 	average = sum / nResults;
 		print("Settings:");
 		print("This value calculated is the background mean intensity: "+average);
-		print("That is the value to substract background to your images.");
+		print("That is the value to subtract background to your images.");
 		run("Close All");
 
 	Ball = getNumber("Define the Rolling ball radius: ", 1);
@@ -327,7 +387,7 @@ else {
 	average = sum / nResults;
 		print("Settings:");
 		print("This value calculated is the background mean intensity: "+average);
-		print("That is the value to substract background to your images.");
+		print("That is the value to subtract background to your images.");
 		run("Close All");
 
 	Ball = getNumber("Max diameter estimated of your objects: ", 1);
@@ -388,9 +448,9 @@ else {
 		showMessage(Title2, Message2);
 }
 
-macro "Counting (Nuclei/cytoplasm) Action Tool - C059T3e165" {
-	Title = "Counting (Nuclei/cytoplasm)";
-	Message = "Nuclei/cytoplasm segmentation is about to begin.\nPress OK to continue."
+macro "Counting (Nuclei) Action Tool - C059T3e165" {
+	Title = "Counting (Nuclei)";
+	Message = "Nuclei segmentation is about to begin.\nPress OK to continue."
 		waitForUser(Title, Message);
 	do {
 
@@ -516,7 +576,7 @@ macro "Counting (Nuclei/cytoplasm) Action Tool - C059T3e165" {
 		selectImage(currentImage_name);
 
 	Title2 = "Observation";
-	Message2 = "Observe all nuclei/cytoplasm identified.\nThen press OK.";
+	Message2 = "Observe all nuclei identified.\nThen press OK.";
 		waitForUser(Title2, Message2);
 		run("ROI Manager...");
 		roiManager("delete");
@@ -534,7 +594,7 @@ macro "Counting (Nuclei/cytoplasm) Action Tool - C059T3e165" {
 		close("ROI Manager");
 
 	dialog = Dialog.create("Question");
-	Dialog.addMessage("Do you wish to segment others nuclei/cytoplasm channel ?");
+	Dialog.addMessage("Do you wish to segment others nuclei channel ?");
 		Dialog.addChoice("Choose:", newArray("Yes", "No, I am done"));
 		Dialog.show();
 	choice = Dialog.getChoice();
@@ -746,54 +806,4 @@ setBatchMode(false);
 	Title3 = "Counting has ended";
 	Message3 = "Press OK to Continue";
 		showMessage(Title3, Message3);
-}
-
-macro "Western Blot - Action Tool T0808WTe808B" {
-	input = getDirectory("Folder where Western Blots images are stored and datas will be saved");
-	list = getFileList(input);
-
-	for (j = 0; j < list.length; j++) {
-		open(input+list[j]);
-		run("Duplicate...", "title=1");
-		run("Duplicate...", "title=2");
-		run("Invert");
-		run("Duplicate...", "title=3");
-		run("Subtract Background...", "rolling=70 create sliding");
-		imageCalculator("Subtract create", "2","3");
-		selectImage("Result of 2");
-		setAutoThreshold("Otsu dark");
-		run("Threshold...");
-	title = "1";
-	message = "Set the threshold, then press OK.";
-		waitForUser(title, message);
-		run("Create Mask");
-		run("Open");
-		run("Fill Holes");
-		run("Erode");
-		run("Dilate");
-		setTool("rectangle");
-	title2 = "2";
-	message2 = "Select the lane that contains your protein of interest, then press OK.";
-		waitForUser(title2, message2);
-		run("Set Measurements...", "integrated redirect=None decimal=3");
-		run("Analyze Particles...", "size=5-Infinity add");
-		run("ROI Manager...");
-	Group = roiManager("count");
-	for (z=0 ; z<Group; z++) {
-		roiManager("Select", z);
-		roiManager("Rename", 1+z+" "+"Protein");
-	}
-		selectImage("1");
-		roiManager("Select", newArray());
-		roiManager("Measure");
-		selectWindow("Results");
-		saveAs("Results", input+j+1+"-Lane.tsv");
-		run("Clear Results");
-		run("Close");
-		roiManager("Select", newArray());
-		run("Select All");
-		roiManager("Save", input+j+1+"-Lane.zip");
-		roiManager("delete");
-		run("Close All");
-}
 }
