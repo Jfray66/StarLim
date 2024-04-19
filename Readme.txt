@@ -1,5 +1,9 @@
 - StarLim - v1.0
 
+Installation:
+
+Copy the file "StarLim.ijm" into FiJi/macro/toolsets/ folder.
+Run StarLim from FiJi toolbar >> StarLim. Click on numbers (1 to 6) to run StarLim tool.
 
 Description:
 
