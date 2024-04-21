@@ -1,21 +1,34 @@
-/* " StarLim " v1.0.0
- * 
- * Toolset of macros designed for 2D-multichannels images to count object per nucleus.
- * 
- * Tool #1 is for image pre-processing of particles and nucleus channels.
- * Tool #2, #3 are for image processing of nucleus channels.
- * Tool #2, #4 are for image processing of particles channels.
- * Tool #5 and #6 are for object segmentation of particles and nucleus channels. 
- * 
- * Made on the 08.2023.
- * 
- * Written by Jean-Yves Alejandro Frayssinhes at
- * Centre de Biologie et Recherche en Santé | CBRS François Denis, UMR CNRS 7276
- * Equipe B-NATION | B cell Nuclear ArchiTecture, Ig genes and ONcogenes
- * 2 rue du Pr Bernard Descottes, 87025 Limoges
- * 
- * 
- * mail: jean-yves.frayssinhes@cnrs.fr
+/*	" StarLim "
+ *	
+ *	StarLim is an imageJ toolset to count foci per nucleus for 2D multi-channels images.
+ *	
+ *	Tool #1 is for image pre-processing of particles and nucleus channels.
+ *	Tool #2, #3 are for image processing of nucleus channels.
+ *	Tool #2, #4 are for image processing of particles channels.
+ *	Tool #5 and #6 are for object segmentation of particles and nucleus channels. 
+ *	
+ *	
+ *	Centre de Biologie et Recherche en Santé | CBRS François Denis, UMR CNRS 7276
+ *	Equipe B-NATION | B cell Nuclear ArchiTecture, Ig genes and ONcogenes
+ *	2 rue du Pr Bernard Descottes, 87025 Limoges
+ *	
+ *	Copyright (C) Made on the 08.2023 and written by Jean-Yves Alejandro Frayssinhes.
+ *	Contact: jean-yves.frayssinhes@cnrs.fr
+ *	
+ *	
+ *	This program is free software: you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *	the Free Software Foundation, either version 3 of the License, or
+ *	any later version.
+ *	
+ *	This program is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU General Public License for more details.
+ *	
+ *	You should have received a copy of the GNU General Public License
+ *	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *	
  */
 
 macro "Convert and/or split Action Tool - C059T3e161"  {
@@ -775,3 +788,9 @@ setBatchMode(false);
 	Message3 = "Press OK to Continue";
 		showMessage(Title3, Message3);
 }
+
+/*  StarLim  Copyright (C) 08.2023  Jean-Yves Alejandro Frayssinhes
+ *  This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+ *  This is free software, and you are welcome to redistribute it
+ *  under certain conditions; type `show c' for details.
+ */
