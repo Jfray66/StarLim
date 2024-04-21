@@ -1,5 +1,11 @@
-/* " StarLim " v1.0
- * Identify foci per nucleus with images normalisation.
+/* " StarLim " v1.0.0
+ * 
+ * Toolset of macros designed for 2D-multichannels images to count object per nucleus.
+ * 
+ * Tool #1 is for image pre-processing of particles and nucleus channels.
+ * Tool #2, #3 are for image processing of nucleus channels.
+ * Tool #2, #4 are for image processing of particles channels.
+ * Tool #5 and #6 are for object segmentation of particles and nucleus channels. 
  * 
  * Made on the 08.2023.
  * 
@@ -7,7 +13,7 @@
  * Centre de Biologie et Recherche en Santé | CBRS François Denis, UMR CNRS 7276
  * Equipe B-NATION | B cell Nuclear ArchiTecture, Ig genes and ONcogenes
  * 2 rue du Pr Bernard Descottes, 87025 Limoges
- * Bureau 109, 1er étage
+ * 
  * 
  * mail: jean-yves.frayssinhes@cnrs.fr
  */
@@ -23,120 +29,81 @@ macro "Convert and/or split Action Tool - C059T3e161"  {
 	Question = getBoolean("Convert any bioimage folder prior to start?");
 if (Question == 1) {
 
-	input = getDirectory("Select images folder that is to convert.");
-	file = input + File.separator + "Images - Converted" + File.separator ;
-	File.makeDirectory(file);
-	output = getDirectory("Find and select the folder: Images - Converted");
+	var file_extension = ".nd2";
 
-		run("Convert...", "input=["+input+"] output=["+output+"] output_format=TIFF interpolation=Bilinear scale=1");
+	Dialog.create("Image format");
+		Dialog.addString("The file extension of your image is: ", file_extension);
+		Dialog.show();
+	file_extension = Dialog.getString();
 
+	input = getDirectory("Select the bioimage folder that is to convert.");
+	list_files = getFileList(input);
+	output_file = input + File.separator + "Images - Converted" + File.separator ;
+	File.makeDirectory(output_file);
+
+	showMessage("Your bioformat images are going to be pre-processed.\nPress Ok, and please, wait.");
+
+setBatchMode(true);
+	for (a = 0; a < list_files.length; a++) {
+    if (endsWith(list_files[a], file_extension)) {
+	images = input + list_files[a];
+		run("Bio-Formats Importer", "open=[" + images + "] autoscale color_mode=Composite");
+	title3 = getTitle();
+		saveAs(".tif", File.separator + output_file + File.separator + title3);
+		close();
+		}
+	}
+setBatchMode(false);
 }
+
 	Question2 = getBoolean("Split channel of any converted images folder?");
 if (Question2 == 1) {
 
 		run("Close All");
 
-	input2 = getDirectory("Select images folder that is to split.");		// Ask the user to select a folder.
-	list2 = getFileList(input2);											// The macro is going to get the list of files (& folders) in it.
-	output_dir2 = input2 + File.separator + "Channels" + File.separator ;	// Create a folder to output the images splitted.
+	input2 = getDirectory("Select /Images - Converted folder/ that is to split.");
+	list2 = getFileList(input2);
+	output_dir2 = input2 + File.separator + "Channels" + File.separator ;
 		File.makeDirectory(output_dir2);
 
-setBatchMode(true);													// Activate batch mode
-	for (i = 0; i < lengthOf(list2); i++) {							// Loop to process the list of files and define the "path".
-	current_imagePath = input2+list2[i];							// Concatenation of "input2" and the "i" element of the array list2.
-			if (!File.isDirectory(current_imagePath)){				// Check out the current file is not a directory.
-		open(current_imagePath);									// If not, image is opened.
-		getDimensions(width, height, channels, slices, frames);		// Get some info about image.
-			if (channels > 1) {										// If it's a multi channel image, images are to split into the output directory.
+setBatchMode(true);
+	for (i = 0; i < lengthOf(list2); i++) {
+	current_imagePath = input2+list2[i];
+			if (!File.isDirectory(current_imagePath)){
+		open(current_imagePath);
+		getDimensions(width, height, channels, slices, frames);
+			if (channels > 1) {
 		run("Split Channels");
-	for (c = 1 ; c <= channels ; c++){									// Loop to process the list of channels of x image to save it into a subfolder.
-		selectImage(c);													// Identify and select x channel from x image.
-	currentImage_name = getTitle();										// Get the title of x channel.
+	for (c = 1 ; c <= channels ; c++){
+		selectImage(c);
+	currentImage_name = getTitle();
 	channel_subfolder = output_dir2 + File.separator + "Channel "+ c + File.separator;
-		File.makeDirectory(channel_subfolder);							// Create a subfolder for x channel.
+		File.makeDirectory(channel_subfolder);
 		saveAs("tif", channel_subfolder + currentImage_name);
 }
-} else {																						// If any single-channel image, save it directly OR display a message.
-		waitForUser("Your attention is required", "Some single-channel images were detected.");	// saveAs("tif", output_dir2 + currentImage_name);
+} else {
+	Title1 = "Into your input folder";
+	Message1 = "Some single-channel images were detected.";
+		showMessage(Title1, Message1);	// saveAs("tif", output_dir2 + currentImage_name);
 }
-		run("Close All");																		// Close all images before opening the next one
+		run("Close All");
 }
 }
-setBatchMode(false);																			// Disable batch mode
+setBatchMode(false);
 		showMessage("If wanted, you can custom the color name of your folders.");
 }
-	dialog = Dialog.create("Another image folder to convert/split ?");				// The macro is going to ask the user if another image folder is to be split.
+	dialog = Dialog.create("Another image folder to convert/split ?");
 	Dialog.addMessage("Do you wish to convert/split images from another folder ?");
 		Dialog.addChoice("Choose:", newArray("Yes", "No, I am done"));
 		Dialog.show();
 	choice = Dialog.getChoice();
-	} while (choice == "Yes");														// As long the user says yes, the loop is processed again.
+	} while (choice == "Yes");
 	Title2 = "Convert/split has ended";
 	Message2 = "Press OK to Continue";
 		showMessage(Title2, Message2);
 }
 
 macro "Normalisation Action Tool - C059T3e162"   {
-	Title = "Normalisation";
-	Message = "Normalisation of channel is about to begin.\nPress OK to continue."
-		waitForUser(Title, Message);
-	do {
-
-		run("Set Measurements...", "mean standard modal min redirect=None decimal=3");
-
-	channel_name = getString("Your channel color is: ", "Blue");
-	input = getDirectory("Select the not-normalised "+channel_name+" channel folder.");
-	list = getFileList(input);
-	output_dir = input + File.separator + "1 - Not-processed "+channel_name+" channels" + File.separator ;
-		File.makeDirectory(output_dir);
-
-	for (i = 0; i < lengthOf(list); i++) {
-	current_imagePath = input+list[i];
-		open(current_imagePath);
-		run("Measure");
-	currentImage_name = getTitle();
-		saveAs("Tiff", output_dir + 1 + i + " "+channel_name+" " + currentImage_name);
-}
-	sum = 0;
-	for (i = 0; i < nResults; i++) {
-  	sum = sum + getResult("Mean", i);
-}
-	average = sum / nResults;
-		print("Settings:\nThe first value calculated is the mean intensity of all images.\nAll images are going to be normalised to this value.");
-		print("");
-		print("Overall mean intensity: "+average);
-	div_values = newArray("nResults");
-	for ( x = 0; x < nResults; x++) {
-	div_values[x] = getResult("Mean", x) / average;
-		print("Normalisation factor " + list[x] + ": " + div_values[x]);
-}
-	for (j = 0; j < nImages; j++) {
-		selectImage(j+1);
-		selectWindow("Log");
-		run("Divide...", "value=" + div_values[j]);
-		run("Measure");
-		run("Fire");
-		run("Save");
-}
-		selectWindow("Results");
-		run("Close");
-		selectWindow("Log");
-		saveAs("Text", output_dir+"Log - "+channel_name);
-		print("\\Clear");
-		run("Close");
-		run("Close All");
-	dialog = Dialog.create("Question");
-	Dialog.addMessage("Do you wish to normalise others channel?");
-		Dialog.addChoice("Choose:", newArray("Yes", "No, I am done"));
-		Dialog.show();
-	choice = Dialog.getChoice();
-	} while (choice == "Yes");
-	Title2 = "Norm has ended";
-	Message2 = "Press OK to Continue";
-		showMessage(Title2, Message2);
-}
-
-macro "Normalisation Action Tool - C059T3e162"	{
 	Title = "Normalisation";
 	Message = "Normalisation of channel is about to begin.\nPress OK to continue."
 		waitForUser(Title, Message);
@@ -462,7 +429,7 @@ macro "Counting (Nuclei) Action Tool - C059T3e165" {
 	output_dir = input + File.separator + "3 - Data "+channel_color+" channels" + File.separator;
 		File.makeDirectory(output_dir);
 
-	// Initialise first variables
+	// Initialise first variables.
 		print("Parameters:");
 	nImage = lengthOf(list);
 	sum = 0;
@@ -480,9 +447,9 @@ macro "Counting (Nuclei) Action Tool - C059T3e165" {
 		waitForUser("Set the lowest threshold", "1 - Select the algorithm you wish (Default, Li, Otsu etc...).\n2 - Press auto.\n3 - Slide the top bar until all objects are segmented.\n4 - Once satisfied, press OK");
 		getThreshold(lower, upper);
 		print("Lowest threshold value " + list[i] + ": " + lower);
-			sum += lower;															// Accumulate lower threshold values.
+			sum += lower;
 }
-			average = sum / nImage;													// Calculate the average lower threshold value.
+			average = sum / nImage;
 		print("Average lower threshold value through all images: "+average);
 		print("The average lower threshold calculated will distinguish what is a true positive from what is a true negative staining.");
 		print("It is going to be a constant for all of your images.");
@@ -490,7 +457,7 @@ macro "Counting (Nuclei) Action Tool - C059T3e165" {
 		selectWindow("Log");
 		run("Close All");
 
-	// Initialise second variable
+	// Initialise second variables.
 	Param = "User settings";
 	var threshold = average;
 	var min = 0;
@@ -694,15 +661,16 @@ macro "Counting (Particles) Action Tool - C059T3e166" {
 		run("Create Mask");	//	run("Tile");
 		run("Fill Holes");
 		run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction limit display redirect="+channel_name+" decimal=4");
-	showMessage("You are going to be ask to select for a ROI.zip folder.\nIt is a folder located in nuclei segmented (3 - .... Datas).\nNB: ROI = Region of interest.");
+	showMessage("You are going to be asked to look for a ROI.zip folder.\nThe folder is located in the nuclei channel /3 - .... Datas/.\nNB: Read the log to know which one you need by reading the name.");
 
 	// Nuclei ROI folder selection.	//	run("ROI Manager...");
+		print("Current image: "+ currentImage_name+" ROI-nuclei.zip");
 	ROI_folder = File.openDialog("Select nuclei ROI folder to identify particles per nucleus.");
 		roiManager("Open", ROI_folder);
 		roiManager("Select", newArray());
 	ROI_to_group = roiManager("count");
 		selectImage("mask");
-		run("Analyze Particles...", "size="+minSize+"-"+maxSize+"circularity="+minCircularity+"-"+maxCircularity+"show=Masks exclude clear"); //		run("Tile");
+		run("Analyze Particles...", "size="+minSize+"-"+maxSize+"circularity="+minCircularity+"-"+maxCircularity+"show=Masks exclude clear");//	run("Tile");
 		selectImage("Mask of mask");
 		setAutoThreshold("Default");
 
@@ -728,7 +696,7 @@ setBatchMode(true);
 }
 setBatchMode(false);
 
-	// Erasing of previous ROI nuclei list and renaming
+	// Erasing of previous ROI nuclei list and renaming.
 		run("ROI Manager...");
 		roiManager("Select", newArray());
 	ROI_selection = roiManager("count");
@@ -764,7 +732,7 @@ setBatchMode(false);
 		waitForUser(Title2, Message2);
 		roiManager("delete");
 
-	// Particles statistic
+	// Collecting datas.
 		run("ROI Manager...");
 		roiManager("Open", ROI_folder);
 
